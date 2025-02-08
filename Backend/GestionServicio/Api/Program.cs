@@ -1,4 +1,5 @@
 using Api.Extension;
+using Api.Extensions;
 using Application.Extensions;
 using Application.Mappers;
 using FluentValidation;
@@ -20,6 +21,8 @@ builder.Services.AddSingleton(Configuration);
 builder.Services.AddFluentValidationAutoValidation(); // Sirve para validar autometicamente los modelos de las peticiones antes que lleguen al controlador
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies().Where(p => !p.IsDynamic)); // Registrar validadores
 builder.Services.AddAuthentication(Configuration); // Se añade injeccion para la autenticacion
+builder.Services.AddScoped<ValidateRequestExtension>();
+builder.Services.AddScoped<ValidateClaimExtension>();
 builder.Services.AddApplicationServices();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

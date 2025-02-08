@@ -33,13 +33,17 @@ namespace Application.Services
             _validations = validationRules;
         }
 
-        public async Task<GenericResponse<DataResponse<UserReponse>>> GetListUser(FiltersRequest request, int userAuthId)
+        public async Task<GenericResponse<DataResponse<UserReponse>>> GetListUser(GenericRequest<FiltersRequest> request, int userAuthId)
         {
             var response = new GenericResponse<DataResponse<UserReponse>>();
             try
             {
+                if(request.Value is null)
+                {
+                    return ErrorResponse(response, "No existe la clave 'Value' asegurate de que contenga datos", StatusCodes.Status404NotFound);
+                }
                 var userExists = await ValidateUserAsync(userAuthId);
-                if (userExists == null)
+                if (userExists is null)
                 {
                     return ErrorResponse(response, MessageHttpResponse.MESSAGE_NOT_FOUND_REGISTER, StatusCodes.Status404NotFound);
                 }
@@ -51,10 +55,10 @@ namespace Application.Services
 
                 if (userExists.RolRolid == (int)UserRole.Gestor)
                 {
-                    request.NumFilter = 3;
+                    request.Value!.NumFilter = 3;
                 }
 
-                var userList = await _unitOfWork.User.GetListUserAsync(request, userAuthId);
+                var userList = await _unitOfWork.User.GetListUserAsync(request.Value!, userAuthId);
                 if (userList is null)
                     return ErrorResponse(response, MessageHttpResponse.MESSAGE_NOT_FOUND, StatusCodes.Status404NotFound);
                 var mapUserList = _mapper.Map<DataResponse<UserReponse>>(userList);
@@ -224,6 +228,7 @@ namespace Application.Services
             response.Success = false;
             response.Message = message;
             response.StatusCode = statusCode;
+            response.StatusMessage = HttpStatus.MS_ERROR;
             return response;
         }
 
@@ -232,6 +237,7 @@ namespace Application.Services
             response.Success = true;
             response.Message = string.IsNullOrEmpty(message) ? MessageHttpResponse.MESSAGE_SUCCESS : message;
             response.StatusCode = StatusCodes.Status200OK;
+            response.StatusMessage =  HttpStatus.MS_OK;
             response.Data = data;
             return response;
         }

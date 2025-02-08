@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Api.Helpers;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -63,26 +64,11 @@ namespace Api.Controllers
         [HttpGet("cash/user")]
         public async Task<ActionResult> GetCashByUser()
         {
-            var userIdClaim = GetUserIdClainToken();
+            var userIdClaim = Util.GetUserIdClainToken(HttpContext);
             if (userIdClaim == 0)
                 return Unauthorized("Claim de usuario no encontrado.");
             var response = await _listSelectService.GetCashByUser(userIdClaim);
             return StatusCode(response.StatusCode, response);
-        }
-
-        private int GetUserIdClainToken()
-        {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            if (identity == null)
-                return 0;
-            // Extraer los claims del token
-            var userClaims = identity.Claims;
-            // Obtener el ID del usuario desde el claim 'unique_name'
-            var userIdClaim = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.Name);
-            if (userIdClaim == null)
-                return 0;
-
-            return int.Parse(userIdClaim.Value);
         }
     }
 }
